@@ -56,56 +56,56 @@
 }
 
 body.dark-mode {
-  --background-start: #080812;
-  --background-end: #1b1b2f;
+  --background-start: #0f1115;
+  --background-end: #151922;
 
-  --card-background: rgba(18, 18, 32, 0.88);
-  --card-border: rgba(150, 130, 255, 0.22);
-  --card-shadow: rgba(0, 0, 0, 0.45);
+  --card-background: rgba(27, 31, 38, 0.94);
+  --card-border: rgba(242, 238, 230, 0.12);
+  --card-shadow: rgba(0, 0, 0, 0.48);
 
-  --poem-card-background: rgba(16, 16, 31, 0.92);
-  --poem-card-border: rgba(150, 130, 255, 0.18);
-  --poem-card-shadow: rgba(0, 0, 0, 0.28);
+  --poem-card-background: rgba(36, 42, 51, 0.96);
+  --poem-card-border: rgba(242, 238, 230, 0.12);
+  --poem-card-shadow: rgba(0, 0, 0, 0.32);
 
-  --message-background: rgba(18, 18, 32, 0.96);
-  --message-border: rgba(150, 130, 255, 0.28);
+  --message-background: rgba(27, 31, 38, 0.98);
+  --message-border: rgba(183, 201, 168, 0.26);
   --message-shadow: rgba(0, 0, 0, 0.55);
 
-  --success-background: rgba(25, 42, 34, 0.96);
-  --success-border: rgba(143, 191, 154, 0.4);
+  --success-background: rgba(31, 49, 39, 0.98);
+  --success-border: rgba(143, 174, 147, 0.45);
 
-  --error-background: rgba(54, 24, 38, 0.96);
-  --error-border: rgba(216, 111, 134, 0.45);
+  --error-background: rgba(57, 31, 34, 0.98);
+  --error-border: rgba(184, 107, 107, 0.45);
 
-  --info-background: rgba(39, 38, 64, 0.96);
-  --info-border: rgba(150, 130, 255, 0.28);
+  --info-background: rgba(36, 42, 51, 0.98);
+  --info-border: rgba(242, 238, 230, 0.16);
 
   --modal-overlay-background: rgba(0, 0, 0, 0.62);
 
-  --text-main: #f1efff;
-  --text-muted: #b9b5d8;
-  --text-soft: #a8a3c7;
+  --text-main: #f2eee6;
+  --text-muted: #b9afa3;
+  --text-soft: #9f968c;
 
-  --input-background: #10101d;
-  --input-border: #3c3a62;
-  --input-focus: #8e8cff;
-  --input-focus-shadow: rgba(142, 140, 255, 0.25);
+  --input-background: #242a33;
+  --input-border: #46505d;
+  --input-focus: #b7c9a8;
+  --input-focus-shadow: rgba(183, 201, 168, 0.22);
 
-  --primary-button-background: #6d6bff;
-  --primary-button-text: #ffffff;
+  --primary-button-background: #8fae93;
+  --primary-button-text: #101310;
 
-  --secondary-button-background: #272640;
-  --secondary-button-text: #ebe9ff;
+  --secondary-button-background: #303742;
+  --secondary-button-text: #f2eee6;
 
-  --danger-button-background: #8f3d5f;
+  --danger-button-background: #b86b6b;
   --danger-button-text: #ffffff;
 
-  --haiku-item-background: #121223;
-  --haiku-item-border: #343154;
-  --haiku-item-shadow: rgba(0, 0, 0, 0.35);
+  --haiku-item-background: #242a33;
+  --haiku-item-border: #3d4652;
+  --haiku-item-shadow: rgba(0, 0, 0, 0.38);
 
   --scrollbar-track: rgba(255, 255, 255, 0.05);
-  --scrollbar-thumb: rgba(142, 140, 255, 0.5);
+  --scrollbar-thumb: rgba(143, 174, 147, 0.5);
 }
 
 body {
@@ -240,6 +240,7 @@ body {
   color: var(--text-muted);
   line-height: 1.55;
   text-align: center;
+  white-space: pre-line;
 }
 
 @keyframes modalPopIn {
@@ -306,6 +307,15 @@ body {
 
 .about-actions {
   padding-top: 8px;
+}
+
+.about-contact-row {
+  margin-top: 0;
+}
+
+.about-contact-row .contact-button,
+.about-contact-row .kofi-button {
+  flex: 1;
 }
 
 .screen-header {
@@ -405,7 +415,8 @@ input:focus {
 }
 
 button,
-.contact-button {
+.contact-button,
+.kofi-button {
   width: 100%;
   border: none;
   border-radius: 14px;
@@ -425,12 +436,14 @@ button,
 }
 
 button:hover,
-.contact-button:hover {
+.contact-button:hover,
+.kofi-button:hover {
   transform: translateY(-1px);
 }
 
 button:active,
-.contact-button:active {
+.contact-button:active,
+.kofi-button:active {
   transform: translateY(0);
   opacity: 0.85;
 }
@@ -445,12 +458,13 @@ button:active,
   flex: 1;
 }
 
-.list-actions {
-  padding-top: 4px;
-}
-
+.appearance-button-row,
 .backup-button-row {
   margin-top: 4px;
+}
+
+.list-actions {
+  padding-top: 4px;
 }
 
 .primary-button {
@@ -466,6 +480,21 @@ button:active,
 .contact-button {
   background: var(--primary-button-background);
   color: var(--primary-button-text);
+}
+
+.kofi-button {
+  background: #72a4f2;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.button-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
 }
 
 .danger-button {
@@ -545,6 +574,7 @@ button:active,
   margin: 0 0 18px;
   color: var(--text-muted);
   line-height: 1.55;
+  white-space: pre-line;
 }
 
 .empty-state-card button {
@@ -606,6 +636,11 @@ button:active,
   text-align: center;
 }
 
+.last-backup-text {
+  font-size: 14px;
+  font-style: italic;
+}
+
 .about-content {
   color: var(--text-main);
   line-height: 1.65;
@@ -633,6 +668,14 @@ button:active,
 
 .haiku-rule-card p {
   margin: 4px 0;
+}
+
+.version-text {
+  margin-top: 18px;
+  color: var(--text-soft);
+  font-size: 14px;
+  text-align: center;
+  font-style: italic;
 }
 
 @media (max-width: 500px) {
@@ -694,7 +737,9 @@ button:active,
     gap: 10px;
   }
 
-  .button-row button {
+  .button-row button,
+  .button-row .contact-button,
+  .button-row .kofi-button {
     padding-left: 8px;
     padding-right: 8px;
   }
