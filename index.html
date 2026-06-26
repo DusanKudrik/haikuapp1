@@ -40,6 +40,49 @@
       </div>
     </div>
 
+    <!-- Unsaved Changes Modal -->
+    <div id="unsaved-modal" class="modal-overlay hidden">
+      <div class="modal-card">
+        <h3>Discard changes?</h3>
+
+        <p>
+          Your edits have not been saved.
+          You can keep editing or discard the changes.
+        </p>
+
+        <div class="button-row">
+          <button id="keep-editing-button" class="secondary-button">
+            Keep editing
+          </button>
+
+          <button id="discard-changes-button" class="danger-button">
+            Discard
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Import Preview Modal -->
+    <div id="import-preview-modal" class="modal-overlay hidden">
+      <div class="modal-card">
+        <h3>Import backup?</h3>
+
+        <p id="import-preview-text">
+          This file contains haikus.
+        </p>
+
+        <div class="button-row">
+          <button id="cancel-import-button" class="secondary-button">
+            Cancel
+          </button>
+
+          <button id="confirm-import-button" class="primary-button">
+            Import
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Main Menu -->
     <section id="menu-screen" class="screen active">
       <div class="card">
@@ -195,9 +238,15 @@
             Choose the look of the app.
           </p>
 
-          <button id="theme-toggle-button" class="primary-button">
-            Dark Mode
-          </button>
+          <div class="button-row appearance-button-row">
+            <button id="light-mode-button" class="secondary-button">
+              Light Mode
+            </button>
+
+            <button id="dark-mode-button" class="primary-button">
+              Dark Mode
+            </button>
+          </div>
         </div>
 
         <div class="settings-section-flat">
@@ -207,13 +256,17 @@
             Save or move your haikus with a JSON backup file.
           </p>
 
+          <p id="last-backup-text" class="last-backup-text">
+            Last backup: Never
+          </p>
+
           <div class="button-row backup-button-row">
             <button id="export-haikus-button" class="primary-button">
-              Export haikus
+              Export Haikus
             </button>
 
             <button id="import-haikus-button" class="secondary-button">
-              Import haikus
+              Import Haikus
             </button>
           </div>
 
@@ -270,20 +323,35 @@
               </p>
 
               <p>
-                You can create your own backup file from Settings whenever you
-                want to move or restore your poems.
+                For safekeeping, you can export a backup file from Settings.
               </p>
             </div>
+
+            <p id="app-version-text" class="version-text">
+              Version 1.0.0
+            </p>
           </div>
         </div>
 
         <div class="about-actions">
-          <a
-            class="contact-button"
-            href="mailto:your-email@example.com?subject=Haiku%20Diary%20feedback"
-          >
-            Contact me
-          </a>
+          <div class="button-row about-contact-row">
+            <a
+              class="contact-button"
+              href="mailto:diaryhaiku@gmail.com?subject=Haiku%20Diary%20feedback"
+            >
+              Contact me
+            </a>
+
+            <a
+              class="kofi-button"
+              href="https://ko-fi.com/U5K6221AY4"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <img src="icons/kofi-cup.png" alt="" class="button-icon" />
+			  <span>Buy me a coffee</span>
+            </a>
+          </div>
 
           <button id="back-from-about-button" class="secondary-button">
             Back
