@@ -24,7 +24,6 @@ document.addEventListener("DOMContentLoaded", function () {
   const backFromNewButton = document.getElementById("back-from-new-button");
   const backFromListButton = document.getElementById("back-from-list-button");
   const backFromDetailButton = document.getElementById("back-from-detail-button");
-  const homeFromDetailButton = document.getElementById("home-from-detail-button");
   const backFromSettingsButton = document.getElementById("back-from-settings-button");
   const backFromAboutButton = document.getElementById("back-from-about-button");
 
@@ -745,13 +744,6 @@ document.addEventListener("DOMContentLoaded", function () {
     showScreen(listScreen);
   });
 
-  safeClick(homeFromDetailButton, function () {
-    selectedHaikuId = null;
-    editMode = false;
-    clearSearch();
-    showScreen(menuScreen);
-  });
-
   safeClick(backFromSettingsButton, function () {
     showScreen(menuScreen);
   });
@@ -793,8 +785,8 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   applySavedTheme();
-  
-    if ("serviceWorker" in navigator) {
+
+  if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("./service-worker.js").catch(function (error) {
       console.log("Service worker registration failed:", error);
     });
