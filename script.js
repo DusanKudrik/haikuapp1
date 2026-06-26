@@ -1,4 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
+  const APP_VERSION = "1.0.0";
+
   const menuScreen = document.getElementById("menu-screen");
   const newHaikuScreen = document.getElementById("new-haiku-screen");
   const listScreen = document.getElementById("list-screen");
@@ -14,12 +16,23 @@ document.addEventListener("DOMContentLoaded", function () {
   const cancelDeleteButton = document.getElementById("cancel-delete-button");
   const confirmDeleteButton = document.getElementById("confirm-delete-button");
 
+  const unsavedModal = document.getElementById("unsaved-modal");
+  const keepEditingButton = document.getElementById("keep-editing-button");
+  const discardChangesButton = document.getElementById("discard-changes-button");
+
+  const importPreviewModal = document.getElementById("import-preview-modal");
+  const importPreviewText = document.getElementById("import-preview-text");
+  const cancelImportButton = document.getElementById("cancel-import-button");
+  const confirmImportButton = document.getElementById("confirm-import-button");
+
   const newHaikuButton = document.getElementById("new-haiku-button");
   const readHaikusButton = document.getElementById("read-haikus-button");
   const createFromListButton = document.getElementById("create-from-list-button");
   const settingsButton = document.getElementById("settings-button");
   const aboutButton = document.getElementById("about-button");
-  const themeToggleButton = document.getElementById("theme-toggle-button");
+
+  const lightModeButton = document.getElementById("light-mode-button");
+  const darkModeButton = document.getElementById("dark-mode-button");
 
   const backFromNewButton = document.getElementById("back-from-new-button");
   const backFromListButton = document.getElementById("back-from-list-button");
@@ -34,6 +47,8 @@ document.addEventListener("DOMContentLoaded", function () {
   const exportHaikusButton = document.getElementById("export-haikus-button");
   const importHaikusButton = document.getElementById("import-haikus-button");
   const importFileInput = document.getElementById("import-file-input");
+  const lastBackupText = document.getElementById("last-backup-text");
+  const appVersionText = document.getElementById("app-version-text");
 
   const formTitle = document.getElementById("form-title");
 
@@ -56,6 +71,8 @@ document.addEventListener("DOMContentLoaded", function () {
   let selectedHaikuId = null;
   let editMode = false;
   let appMessageTimer = null;
+  let pendingImportHaikus = null;
+  let pendingImportExportedAt = null;
 
   function safeClick(element, handler) {
     if (element) {
@@ -89,6 +106,30 @@ document.addEventListener("DOMContentLoaded", function () {
   function hideDeleteModal() {
     if (deleteModal) {
       deleteModal.classList.add("hidden");
+    }
+  }
+
+  function showUnsavedModal() {
+    if (unsavedModal) {
+      unsavedModal.classList.remove("hidden");
+    }
+  }
+
+  function hideUnsavedModal() {
+    if (unsavedModal) {
+      unsavedModal.classList.add("hidden");
+    }
+  }
+
+  function showImportPreviewModal() {
+    if (importPreviewModal) {
+      importPreviewModal.classList.remove("hidden");
+    }
+  }
+
+  function hideImportPreviewModal() {
+    if (importPreviewModal) {
+      importPreviewModal.classList.add("hidden");
     }
   }
 
@@ -137,54 +178,60 @@ document.addEventListener("DOMContentLoaded", function () {
     localStorage.setItem("haikus", JSON.stringify(haikus));
   }
 
-  function applySavedTheme() {
-    const savedTheme = localStorage.getItem("theme");
-
-    if (savedTheme === "dark") {
+  function setTheme(theme) {
+    if (theme === "dark") {
       document.body.classList.add("dark-mode");
+      localStorage.setItem("theme", "dark");
 
-      if (themeToggleButton) {
-        themeToggleButton.textContent = "Light Mode";
+      if (lightModeButton) {
+        lightModeButton.className = "secondary-button";
+      }
+
+      if (darkModeButton) {
+        darkModeButton.className = "primary-button";
       }
     } else {
       document.body.classList.remove("dark-mode");
+      localStorage.setItem("theme", "light");
 
-      if (themeToggleButton) {
-        themeToggleButton.textContent = "Dark Mode";
+      if (lightModeButton) {
+        lightModeButton.className = "primary-button";
+      }
+
+      if (darkModeButton) {
+        darkModeButton.className = "secondary-button";
       }
     }
   }
 
-  function toggleTheme() {
-    const isDarkMode = document.body.classList.contains("dark-mode");
+  function applySavedTheme() {
+    const savedTheme = localStorage.getItem("theme");
 
-    if (isDarkMode) {
-      document.body.classList.remove("dark-mode");
-      localStorage.setItem("theme", "light");
-
-      if (themeToggleButton) {
-        themeToggleButton.textContent = "Dark Mode";
-      }
-
-      showAppMessage(
-        "info",
-        "Light mode on",
-        "Your appearance setting has been saved."
-      );
+    if (savedTheme === "dark") {
+      setTheme("dark");
     } else {
-      document.body.classList.add("dark-mode");
-      localStorage.setItem("theme", "dark");
-
-      if (themeToggleButton) {
-        themeToggleButton.textContent = "Light Mode";
-      }
-
-      showAppMessage(
-        "info",
-        "Dark mode on",
-        "Your appearance setting has been saved."
-      );
+      setTheme("light");
     }
+  }
+
+  function chooseLightMode() {
+    setTheme("light");
+
+    showAppMessage(
+      "info",
+      "Light mode on",
+      "Your appearance setting has been saved."
+    );
+  }
+
+  function chooseDarkMode() {
+    setTheme("dark");
+
+    showAppMessage(
+      "info",
+      "Dark mode on",
+      "Your appearance setting has been saved."
+    );
   }
 
   function clearForm() {
@@ -236,6 +283,59 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
+  function getFormValues() {
+    return {
+      title: titleInput ? titleInput.value.trim() : "",
+      lineOne: lineOneInput ? lineOneInput.value.trim() : "",
+      lineTwo: lineTwoInput ? lineTwoInput.value.trim() : "",
+      lineThree: lineThreeInput ? lineThreeInput.value.trim() : ""
+    };
+  }
+
+  function formHasAnyText() {
+    const values = getFormValues();
+
+    return (
+      values.title !== "" ||
+      values.lineOne !== "" ||
+      values.lineTwo !== "" ||
+      values.lineThree !== ""
+    );
+  }
+
+  function formHasUnsavedEditChanges() {
+    if (editMode !== true || selectedHaikuId === null) {
+      return false;
+    }
+
+    const haikus = getHaikus();
+
+    const originalHaiku = haikus.find(function (haiku) {
+      return haiku.id === selectedHaikuId;
+    });
+
+    if (!originalHaiku) {
+      return false;
+    }
+
+    const values = getFormValues();
+
+    return (
+      values.title !== originalHaiku.title ||
+      values.lineOne !== originalHaiku.lineOne ||
+      values.lineTwo !== originalHaiku.lineTwo ||
+      values.lineThree !== originalHaiku.lineThree
+    );
+  }
+
+  function formHasUnsavedChanges() {
+    if (editMode === true) {
+      return formHasUnsavedEditChanges();
+    }
+
+    return formHasAnyText();
+  }
+
   function formatDate(dateString) {
     const date = new Date(dateString);
 
@@ -250,6 +350,41 @@ document.addEventListener("DOMContentLoaded", function () {
     return year + " " + month + " " + day;
   }
 
+  function formatOptionalDate(dateString) {
+    if (!dateString) {
+      return "Unknown";
+    }
+
+    const date = new Date(dateString);
+
+    if (Number.isNaN(date.getTime())) {
+      return "Unknown";
+    }
+
+    return formatDate(dateString);
+  }
+
+  function updateLastBackupDisplay() {
+    if (!lastBackupText) {
+      return;
+    }
+
+    const lastBackupDate = localStorage.getItem("lastBackupDate");
+
+    if (!lastBackupDate) {
+      lastBackupText.textContent = "Last backup: Never";
+      return;
+    }
+
+    lastBackupText.textContent = "Last backup: " + formatDate(lastBackupDate);
+  }
+
+  function updateAppVersionDisplay() {
+    if (appVersionText) {
+      appVersionText.textContent = "Version " + APP_VERSION;
+    }
+  }
+
   function clearSearch() {
     if (searchInput) {
       searchInput.value = "";
@@ -262,21 +397,33 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function saveFormHaiku() {
-    const title = titleInput.value.trim();
-    const lineOne = lineOneInput.value.trim();
-    const lineTwo = lineTwoInput.value.trim();
-    const lineThree = lineThreeInput.value.trim();
+    const values = getFormValues();
 
-    if (title === "" || lineOne === "" || lineTwo === "" || lineThree === "") {
+    if (
+      values.title === "" ||
+      values.lineOne === "" ||
+      values.lineTwo === "" ||
+      values.lineThree === ""
+    ) {
       formMessage.textContent = "Please fill in the title and all three lines.";
       formMessage.className = "message error";
       return;
     }
 
     if (editMode === true) {
-      updateExistingHaiku(title, lineOne, lineTwo, lineThree);
+      updateExistingHaiku(
+        values.title,
+        values.lineOne,
+        values.lineTwo,
+        values.lineThree
+      );
     } else {
-      createNewHaiku(title, lineOne, lineTwo, lineThree);
+      createNewHaiku(
+        values.title,
+        values.lineOne,
+        values.lineTwo,
+        values.lineThree
+      );
     }
   }
 
@@ -418,7 +565,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
       const emptyState = createEmptyState(
         "No haikus yet",
-        "Your first tiny poem is waiting. Write a small moment before it flies away.",
+        "A blank page waits.\nWrite a small moment before it flies away.",
         true
       );
 
@@ -550,6 +697,20 @@ document.addEventListener("DOMContentLoaded", function () {
     );
   }
 
+  function discardUnsavedChanges() {
+    const haikuIdToReturnTo = selectedHaikuId;
+
+    hideUnsavedModal();
+
+    if (editMode === true && haikuIdToReturnTo !== null) {
+      resetFormVisualsOnly();
+      openHaikuDetail(haikuIdToReturnTo);
+    } else {
+      resetFormToCreateMode();
+      showScreen(menuScreen);
+    }
+  }
+
   function exportHaikus() {
     const haikus = getHaikus();
 
@@ -566,6 +727,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const backup = {
       app: "Haiku Diary",
       version: 1,
+      appVersion: APP_VERSION,
       exportedAt: new Date().toISOString(),
       haikus: haikus
     };
@@ -591,10 +753,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
     URL.revokeObjectURL(url);
 
+    localStorage.setItem("lastBackupDate", new Date().toISOString());
+    updateLastBackupDisplay();
+
     showAppMessage(
       "success",
       "Backup exported",
-      "Your JSON backup file was created:\n" + fileName
+      "Your local backup file was created:\n" + fileName
     );
   }
 
@@ -610,7 +775,7 @@ document.addEventListener("DOMContentLoaded", function () {
     );
   }
 
-  function importHaikusFromFile(file) {
+  function readImportFile(file) {
     const reader = new FileReader();
 
     reader.onload = function (event) {
@@ -631,50 +796,33 @@ document.addEventListener("DOMContentLoaded", function () {
           return;
         }
 
-        const currentHaikus = getHaikus();
-        const existingIds = new Set(
-          currentHaikus.map(function (haiku) {
-            return haiku.id;
-          })
-        );
-
         const validImportedHaikus = importedData.haikus.filter(isValidImportedHaiku);
 
-        let importedCount = 0;
-        let skippedCount = 0;
+        if (validImportedHaikus.length === 0) {
+          showAppMessage(
+            "info",
+            "Nothing to import",
+            "This backup file does not contain any readable haikus."
+          );
 
-        validImportedHaikus.forEach(function (haiku) {
-          if (existingIds.has(haiku.id)) {
-            skippedCount += 1;
-          } else {
-            currentHaikus.push({
-              id: haiku.id,
-              title: haiku.title,
-              date: haiku.date,
-              updatedAt: haiku.updatedAt || null,
-              lineOne: haiku.lineOne,
-              lineTwo: haiku.lineTwo,
-              lineThree: haiku.lineThree
-            });
+          return;
+        }
 
-            existingIds.add(haiku.id);
-            importedCount += 1;
-          }
-        });
+        pendingImportHaikus = validImportedHaikus;
+        pendingImportExportedAt = importedData.exportedAt || null;
 
-        currentHaikus.sort(function (a, b) {
-          return new Date(b.date) - new Date(a.date);
-        });
+        if (importPreviewText) {
+          importPreviewText.textContent =
+            "This file contains " +
+            validImportedHaikus.length +
+            " haiku" +
+            (validImportedHaikus.length === 1 ? "." : "s.") +
+            "\nExported: " +
+            formatOptionalDate(pendingImportExportedAt) +
+            "\n\nExisting haikus will not be duplicated.";
+        }
 
-        saveHaikus(currentHaikus);
-        clearSearch();
-        renderHaikuList();
-
-        showAppMessage(
-          "success",
-          "Import complete",
-          "Imported: " + importedCount + "\nSkipped duplicates: " + skippedCount
-        );
+        showImportPreviewModal();
       } catch (error) {
         showAppMessage(
           "error",
@@ -689,6 +837,68 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     reader.readAsText(file);
+  }
+
+  function confirmImportHaikus() {
+    if (!pendingImportHaikus) {
+      hideImportPreviewModal();
+      return;
+    }
+
+    const currentHaikus = getHaikus();
+    const existingIds = new Set(
+      currentHaikus.map(function (haiku) {
+        return haiku.id;
+      })
+    );
+
+    let importedCount = 0;
+    let skippedCount = 0;
+
+    pendingImportHaikus.forEach(function (haiku) {
+      if (existingIds.has(haiku.id)) {
+        skippedCount += 1;
+      } else {
+        currentHaikus.push({
+          id: haiku.id,
+          title: haiku.title,
+          date: haiku.date,
+          updatedAt: haiku.updatedAt || null,
+          lineOne: haiku.lineOne,
+          lineTwo: haiku.lineTwo,
+          lineThree: haiku.lineThree
+        });
+
+        existingIds.add(haiku.id);
+        importedCount += 1;
+      }
+    });
+
+    currentHaikus.sort(function (a, b) {
+      return new Date(b.date) - new Date(a.date);
+    });
+
+    saveHaikus(currentHaikus);
+    clearSearch();
+    renderHaikuList();
+
+    pendingImportHaikus = null;
+    pendingImportExportedAt = null;
+
+    hideImportPreviewModal();
+
+    showAppMessage(
+      "success",
+      "Import complete",
+      "Imported: " + importedCount + "\nSkipped duplicates: " + skippedCount
+    );
+  }
+
+  function cancelImportHaikus() {
+    pendingImportHaikus = null;
+    pendingImportExportedAt = null;
+
+    hideImportPreviewModal();
   }
 
   safeClick(newHaikuButton, function () {
@@ -706,14 +916,17 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   safeClick(settingsButton, function () {
+    updateLastBackupDisplay();
     showScreen(settingsScreen);
   });
 
   safeClick(aboutButton, function () {
+    updateAppVersionDisplay();
     showScreen(aboutScreen);
   });
 
-  safeClick(themeToggleButton, toggleTheme);
+  safeClick(lightModeButton, chooseLightMode);
+  safeClick(darkModeButton, chooseDarkMode);
 
   if (searchInput) {
     searchInput.addEventListener("input", function () {
@@ -722,6 +935,11 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   safeClick(backFromNewButton, function () {
+    if (formHasUnsavedChanges()) {
+      showUnsavedModal();
+      return;
+    }
+
     if (editMode === true && selectedHaikuId !== null) {
       const haikuIdToReturnTo = selectedHaikuId;
 
@@ -733,6 +951,12 @@ document.addEventListener("DOMContentLoaded", function () {
       showScreen(menuScreen);
     }
   });
+
+  safeClick(keepEditingButton, function () {
+    hideUnsavedModal();
+  });
+
+  safeClick(discardChangesButton, discardUnsavedChanges);
 
   safeClick(backFromListButton, function () {
     clearSearch();
@@ -780,11 +1004,16 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
 
-      importHaikusFromFile(file);
+      readImportFile(file);
     });
   }
 
+  safeClick(cancelImportButton, cancelImportHaikus);
+  safeClick(confirmImportButton, confirmImportHaikus);
+
   applySavedTheme();
+  updateLastBackupDisplay();
+  updateAppVersionDisplay();
 
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("./service-worker.js").catch(function (error) {
