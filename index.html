@@ -83,6 +83,51 @@
       </div>
     </div>
 
+    <!-- Contact Modal -->
+    <div id="contact-modal" class="modal-overlay hidden">
+      <div class="modal-card">
+        <h3>Contact me</h3>
+
+        <form id="contact-form" class="contact-form">
+          <label for="contact-email">Your email</label>
+          <input
+            id="contact-email"
+            type="email"
+            placeholder="you@example.com"
+            required
+          />
+
+          <label for="contact-message">Message</label>
+          <textarea
+            id="contact-message"
+            rows="5"
+            placeholder="Write your message..."
+            required
+          ></textarea>
+
+          <p id="contact-form-message" class="message"></p>
+
+          <div class="button-row">
+            <button
+              id="cancel-contact-button"
+              class="secondary-button"
+              type="button"
+            >
+              Cancel
+            </button>
+
+            <button
+              id="send-contact-button"
+              class="primary-button"
+              type="submit"
+            >
+              Send
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- Main Menu -->
     <section id="menu-screen" class="screen active">
       <div class="card">
@@ -327,6 +372,24 @@
               </p>
             </div>
 
+            <div class="support-section">
+              <h3>Contact & support</h3>
+
+              <button id="open-contact-button" class="primary-button">
+                Contact me
+              </button>
+
+              <a
+                class="kofi-button"
+                href="https://ko-fi.com/U5K6221AY4"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <img src="icons/kofi-cup.png" alt="" class="button-icon" />
+				<span>Buy me a coffee</span>
+              </a>
+            </div>
+
             <p id="app-version-text" class="version-text">
               Version 1.0.0
             </p>
@@ -334,25 +397,6 @@
         </div>
 
         <div class="about-actions">
-          <div class="button-row about-contact-row">
-            <a
-              class="contact-button"
-              href="mailto:diaryhaiku@gmail.com?subject=Haiku%20Diary%20feedback"
-            >
-              Contact me
-            </a>
-
-            <a
-              class="kofi-button"
-              href="https://ko-fi.com/U5K6221AY4"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <img src="icons/kofi-cup.png" alt="" class="button-icon" />
-			  <span>Buy me a coffee</span>
-            </a>
-          </div>
-
           <button id="back-from-about-button" class="secondary-button">
             Back
           </button>
