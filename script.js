@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", function () {
   const APP_VERSION = "1.0.0";
+  const WEB3FORMS_ACCESS_KEY = "bab845f7-a3b4-4aeb-a5ce-65d9a1f01cb1";
 
   const menuScreen = document.getElementById("menu-screen");
   const newHaikuScreen = document.getElementById("new-haiku-screen");
@@ -24,6 +25,15 @@ document.addEventListener("DOMContentLoaded", function () {
   const importPreviewText = document.getElementById("import-preview-text");
   const cancelImportButton = document.getElementById("cancel-import-button");
   const confirmImportButton = document.getElementById("confirm-import-button");
+
+  const contactModal = document.getElementById("contact-modal");
+  const contactForm = document.getElementById("contact-form");
+  const contactEmail = document.getElementById("contact-email");
+  const contactMessage = document.getElementById("contact-message");
+  const contactFormMessage = document.getElementById("contact-form-message");
+  const openContactButton = document.getElementById("open-contact-button");
+  const cancelContactButton = document.getElementById("cancel-contact-button");
+  const sendContactButton = document.getElementById("send-contact-button");
 
   const newHaikuButton = document.getElementById("new-haiku-button");
   const readHaikusButton = document.getElementById("read-haikus-button");
@@ -130,6 +140,38 @@ document.addEventListener("DOMContentLoaded", function () {
   function hideImportPreviewModal() {
     if (importPreviewModal) {
       importPreviewModal.classList.add("hidden");
+    }
+  }
+
+  function showContactModal() {
+    if (contactModal) {
+      contactModal.classList.remove("hidden");
+    }
+  }
+
+  function hideContactModal() {
+    if (contactModal) {
+      contactModal.classList.add("hidden");
+    }
+  }
+
+  function resetContactForm() {
+    if (contactEmail) {
+      contactEmail.value = "";
+    }
+
+    if (contactMessage) {
+      contactMessage.value = "";
+    }
+
+    if (contactFormMessage) {
+      contactFormMessage.textContent = "";
+      contactFormMessage.className = "message";
+    }
+
+    if (sendContactButton) {
+      sendContactButton.disabled = false;
+      sendContactButton.textContent = "Send";
     }
   }
 
@@ -901,6 +943,76 @@ document.addEventListener("DOMContentLoaded", function () {
     hideImportPreviewModal();
   }
 
+  function sendContactMessage(event) {
+    event.preventDefault();
+
+    if (!contactEmail || !contactMessage || !contactFormMessage) {
+      return;
+    }
+
+    const email = contactEmail.value.trim();
+    const message = contactMessage.value.trim();
+
+    if (email === "" || message === "") {
+      contactFormMessage.textContent = "Please enter your email and message.";
+      contactFormMessage.className = "message error";
+      return;
+    }
+
+    if (sendContactButton) {
+      sendContactButton.disabled = true;
+      sendContactButton.textContent = "Sending...";
+    }
+
+    contactFormMessage.textContent = "";
+    contactFormMessage.className = "message";
+
+    fetch("https://api.web3forms.com/submit", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json"
+      },
+      body: JSON.stringify({
+        access_key: WEB3FORMS_ACCESS_KEY,
+        subject: "Haiku Diary feedback",
+        from_name: "Haiku Diary app",
+        email: email,
+        message: message
+      })
+    })
+      .then(function (response) {
+        return response.json();
+      })
+      .then(function (data) {
+        if (data.success) {
+          resetContactForm();
+          hideContactModal();
+
+          showAppMessage(
+            "success",
+            "Message sent",
+            "Thank you for reaching out."
+          );
+        } else {
+          contactFormMessage.textContent =
+            "Message not sent. Please try again later.";
+          contactFormMessage.className = "message error";
+        }
+      })
+      .catch(function () {
+        contactFormMessage.textContent =
+          "Message not sent. Please check your connection and try again.";
+        contactFormMessage.className = "message error";
+      })
+      .finally(function () {
+        if (sendContactButton) {
+          sendContactButton.disabled = false;
+          sendContactButton.textContent = "Send";
+        }
+      });
+  }
+
   safeClick(newHaikuButton, function () {
     goToCreateHaiku();
   });
@@ -927,6 +1039,20 @@ document.addEventListener("DOMContentLoaded", function () {
 
   safeClick(lightModeButton, chooseLightMode);
   safeClick(darkModeButton, chooseDarkMode);
+
+  safeClick(openContactButton, function () {
+    resetContactForm();
+    showContactModal();
+  });
+
+  safeClick(cancelContactButton, function () {
+    resetContactForm();
+    hideContactModal();
+  });
+
+  if (contactForm) {
+    contactForm.addEventListener("submit", sendContactMessage);
+  }
 
   if (searchInput) {
     searchInput.addEventListener("input", function () {
